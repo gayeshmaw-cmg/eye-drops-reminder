@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/local-notifications": "^8.3.1"
+  },
+  "name": "eye-drops-reminder",
+  "version": "1.0.0",
+  "description": "The schedule comes from Dr. Manel Pasquel's sheet. The course starts on 22 Nov 2026, and you can change the start date in Settings.",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

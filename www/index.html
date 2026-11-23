@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12355b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Eye Drops">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Eye Drops Reminder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Sinhala:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f7fb; --card:#fff; --ink:#13243a; --mute:#5b6b80; --line:#e1e7ef;
+  --head:#12355b; --headink:#fff; --late:#c2412d; --lateBg:#fdecea; --ok:#1e8a5a;
+  --c-megamox:#1f8a63; --c-nevan:#b23a48; --c-pred:#2d6cdf;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0c1624; --card:#132235; --ink:#e8eef6; --mute:#9fb0c4; --line:#22344b;
+  --head:#0a1d33; --late:#ff8a73; --lateBg:#3a1d1a; --ok:#4fd197;
+  --c-megamox:#3cc391; --c-nevan:#ec6b7a; --c-pred:#6ea2ff;
+}}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:calc(76px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent}
+.si{font-family:"Noto Sans Sinhala","Iskoola Pota",sans-serif}
+button,input,select{font:inherit;color:inherit}
+header{background:var(--head);color:var(--headink);padding:calc(14px + env(safe-area-inset-top)) 18px 22px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top h1{font-size:18px;margin:0;font-weight:600;letter-spacing:.2px}
+.daynav{display:flex;align-items:center;gap:6px}
+.daynav button{background:rgba(255,255,255,.12);border:0;color:#fff;width:40px;height:40px;border-radius:12px;font-size:18px}
+.daynav button:disabled{opacity:.35}
+.daylbl{font-size:14px;opacity:.85;margin-top:10px}
+.hero{margin-top:12px;background:rgba(255,255,255,.08);border-radius:18px;padding:16px}
+.hero .k{font-size:13px;opacity:.8}
+.hero .big{font-size:40px;font-weight:700;line-height:1.05;margin:4px 0 6px}
+.hero .who{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#13243a;border-radius:999px;padding:4px 10px 4px 6px;font-size:14px;font-weight:600}
+.pill i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.hero .cd{font-size:15px;opacity:.9}
+.btn{border:0;border-radius:12px;min-height:44px;padding:0 16px;font-weight:600;cursor:pointer}
+.btn.pri{background:#5fb3f0;color:#0b2540}
+.btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--late);border:1px solid var(--line)}
+main{padding:16px 14px;max-width:720px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+.slot{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.slot:last-child{border-bottom:0}
+.time{font-size:24px;font-weight:700;line-height:1.1;white-space:nowrap}
+.time small{display:block;font-size:13px;font-weight:500;color:var(--mute)}
+.items{display:grid;gap:8px}
+.dose{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:14px;padding:10px 12px;min-height:56px;cursor:pointer}
+.dose .nm{font-weight:600}
+.dose .sub{font-size:13px;color:var(--mute)}
+.dose .tx{flex:1}
+.chk{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:16px;color:#fff}
+.dose.done{opacity:.6}
+.dose.done .chk{background:var(--ok);border-color:var(--ok)}
+.dose.late{background:var(--lateBg)}
+.dose.late .sub{color:var(--late);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.card h2{font-size:18px;margin:0 0 2px;display:flex;align-items:center;gap:8px}
+.card h2 i{width:12px;height:12px;border-radius:50%}
+.card .s{font-size:14px;color:var(--mute)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin:10px 0 4px}
+.bar b{display:block;height:100%;background:var(--c)}
+.phase{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:8px 10px;border-radius:10px;margin-top:6px;font-size:14px}
+.phase.cur{background:color-mix(in srgb,var(--c) 14%,transparent);font-weight:600}
+.phase .t{grid-column:1/-1;color:var(--mute);font-weight:400}
+.note{font-size:14px;color:var(--mute);background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:10px 0}
+label.f{display:block;font-size:14px;color:var(--mute);margin:12px 0 4px}
+input[type=date],input[type=datetime-local],input[type=time],input[type=number],select{width:100%;min-height:44px;font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+.times{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.times span{display:flex;align-items:center;gap:2px}
+.times input{width:118px}
+.x{border:0;background:none;color:var(--late);font-size:20px;width:32px;height:44px;cursor:pointer}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.empty{padding:30px 10px;text-align:center;color:var(--mute)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav.tabs button{border:0;background:none;min-height:60px;font-size:14px;font-weight:600;color:var(--mute)}
+nav.tabs button.on{color:var(--ink);box-shadow:inset 0 3px 0 #5fb3f0}
+#alarm{position:fixed;left:10px;right:10px;bottom:calc(72px + env(safe-area-inset-bottom));background:var(--head);color:#fff;border-radius:18px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:none;z-index:10}
+#alarm.on{display:block;animation:pop .25s ease-out}
+@keyframes pop{from{transform:translateY(20px);opacity:0}}
+@media (prefers-reduced-motion:reduce){#alarm.on{animation:none}}
+#alarm h3{margin:0 0 6px;font-size:20px}
+#toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));transform:translateX(-50%);background:#13243a;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;display:none;z-index:20;max-width:90vw}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>Eye drops</h1>
+    <div class="daynav">
+      <button id="prev" aria-label="Previous day">‹</button>
+      <button id="today" aria-label="Today" style="width:auto;padding:0 12px;font-size:14px">Today</button>
+      <button id="next" aria-label="Next day">›</button>
+    </div>
+  </div>
+  <div class="daylbl" id="daylbl"></div>
+  <div class="hero" id="hero"></div>
+</header>
+
+<main>
+  <section class="view on" id="v-today"></section>
+  <section class="view" id="v-plan"></section>
+  <section class="view" id="v-set"></section>
+</main>
+
+<div id="alarm" role="alertdialog" aria-live="assertive"></div>
+<div id="toast"></div>
+
+<nav class="tabs">
+  <button data-v="today" class="on">Today</button>
+  <button data-v="plan">Course</button>
+  <button data-v="set">Settings</button>
+</nav>
+
+<script>
+{
+/* ---------- Prescription (Dr. Manel Pasquel sheet) ---------- */
+const DEFAULT = {
+  start: '2026-11-22',
+  gap: 5,            // minutes between different drops at the same time
+  sound: true,
+  repeat: 10,        // re-remind every N minutes if not marked done (max 3 reminders)
+  visit: '2026-12-01T15:30',
+  meds: [
+    { id:'megamox', name:'Megamox', brand:'Optimox', color:'megamox',
+      si:'පැය 6 කට වරක් බැගින් සති 2 ක්',
+      phases:[ {days:14, label:'Every 6 hours', times:['06:00','12:00','18:00','24:00']} ] },
+    { id:'nevan', name:'Nevan', brand:'Nevan', color:'nevan',
+      si:'පැය 8 කට වරක් බැගින් සති 4 ක්',
+      phases:[ {days:28, label:'Every 8 hours', times:['06:00','14:00','22:00']} ] },
+    { id:'pred', name:'Prednisolone Acetate', brand:'Optipred · shake well', color:'pred',
+      si:'පැය 4 → 6 → 8 → 12 → 24 කට වරක් (සතියක් බැගින්)',
+      phases:[
+        {days:7, label:'Every 4 hours',  times:['06:00','10:00','14:00','18:00','22:00']},
+        {days:7, label:'Every 6 hours',  times:['06:00','12:00','18:00','24:00']},
+        {days:7, label:'Every 8 hours',  times:['06:00','14:00','22:00']},
+        {days:7, label:'Every 12 hours', times:['06:00','18:00']},
+        {days:7, label:'Once a day',     times:['06:00']}
+      ] }
+  ]
+};
+
+/* ---------- Storage (safe) ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+let S = store.get('ed.settings', null) || clone(DEFAULT);
+let taken = store.get('ed.taken', {});
+let rem = store.get('ed.rem', {});
+const save = () => { store.set('ed.settings', S); store.set('ed.taken', taken); store.set('ed.rem', rem); };
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2,'0');
+const mins = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+const dkey = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseDay = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const fmtT = d => d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+const fmtD = d => d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+const tLabel = t => t==='24:00' ? '12:00 AM' : fmtT(new Date(2000,0,1,0,mins(t)));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const col = m => `var(--c-${m.color})`;
+const totalDays = m => m.phases.reduce((a,p)=>a+Number(p.days),0);
+
+/* ---------- Build every dose of the course ---------- */
+let ALL = [];
+function build(){
+  const st = parseDay(S.start); const out = [];
+  S.meds.forEach((med, mi) => {
+    let off = 0;
+    med.phases.forEach((ph, pi) => {
+      for (let d = 0; d < ph.days; d++){
+        const day = addDays(st, off + d);
+        ph.times.forEach(t => {
+          const base = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, mins(t));
+          out.push({ med, mi, pi, t, day:dkey(day), base, key:`${med.id}|${dkey(day)}|${t}` });
+        });
+      }
+      off += Number(ph.days);
+    });
+  });
+  // drops due at the same moment: space them S.gap minutes apart, in prescription order
+  const bySlot = {};
+  out.forEach(d => (bySlot[d.base.getTime()] ||= []).push(d));
+  Object.values(bySlot).forEach(list => {
+    list.sort((a,b)=>a.mi-b.mi);
+    list.forEach((d,i) => d.at = new Date(d.base.getTime() + i*S.gap*60000));
+  });
+  out.sort((a,b)=>a.at-b.at);
+  ALL = out;
+}
+
+/* ---------- Views ---------- */
+let viewDay = dkey(new Date());
+const courseLen = () => Math.max(...S.meds.map(totalDays));
+const courseEnd = () => dkey(addDays(parseDay(S.start), courseLen()-1));
+
+function renderHero(){
+  const now = Date.now();
+  const late = ALL.filter(d => !taken[d.key] && d.at <= now && now - d.at < 3*3600e3);
+  const next = ALL.find(d => !taken[d.key] && d.at > now);
+  let h = '';
+  if (late.length){
+    const first = late[0].at;
+    h = `<div class="k">Due now · since ${fmtT(first)}</div>
+      <div class="who">${late.map(d=>`<span class="pill"><i style="background:${col(d.med)}"></i>${esc(d.med.name)}</span>`).join('')}</div>
+      <button class="btn pri" id="doneAll">Mark ${late.length>1?'all '+late.length:''} done</button>`;
+  } else if (next){
+    const same = ALL.filter(d => !taken[d.key] && d.base.getTime() === next.base.getTime());
+    const diff = Math.max(0, next.at - now), hh = Math.floor(diff/3600e3), mm = Math.ceil((diff%3600e3)/60000);
+    const dayTxt = dkey(next.at) === dkey(new Date()) ? '' : ' · ' + fmtD(next.at);
+    h = `<div class="k">Next drops${dayTxt}</div>
+      <div class="big">${fmtT(next.at)}</div>
+      <div class="who">${same.map(d=>`<span class="pill"><i style="background:${col(d.med)}"></i>${esc(d.med.name)}</span>`).join('')}</div>
+      <div class="cd">in ${hh ? hh+' h ' : ''}${mm} min</div>`;
+  } else {
+    h = `<div class="k">Course</div><div class="big">All done</div><div class="cd">No more drops scheduled.</div>`;
+  }
+  if (S.visit){
+    const v = new Date(S.visit), dt = v - now;
+    if (dt > 0 && dt < 3*86400e3) h += `<div class="cd" style="margin-top:10px">Clinic visit: ${fmtD(v)}, ${fmtT(v)}</div>`;
+  }
+  $('#hero').innerHTML = h;
+  const b = $('#doneAll'); if (b) b.onclick = () => { late.forEach(d => taken[d.key] = Date.now()); afterChange(); };
+}
+
+function renderToday(){
+  const st = parseDay(S.start), vd = parseDay(viewDay);
+  const n = Math.round((vd - st)/86400e3) + 1;
+  $('#daylbl').textContent = fmtD(vd) + (n >= 1 && n <= courseLen() ? ` · Day ${n} of ${courseLen()}` : '');
+  $('#prev').disabled = viewDay <= S.start;
+  $('#next').disabled = viewDay >= courseEnd();
+  const list = ALL.filter(d => d.day === viewDay);
+  if (!list.length){ $('#v-today').innerHTML = `<div class="empty">No drops on this day.<br>Course runs ${fmtD(st)} – ${fmtD(parseDay(courseEnd()))}.</div>`; return; }
+  const slots = [];
+  list.forEach(d => { let s = slots.find(x => x.t === d.t); if (!s) slots.push(s = {t:d.t, items:[]}); s.items.push(d); });
+  slots.sort((a,b)=>mins(a.t)-mins(b.t));
+  const now = Date.now();
+  $('#v-today').innerHTML = slots.map(s => {
+    const [hm, ap] = tLabel(s.t).split(' ');
+    return `<div class="slot"><div class="time">${hm}<small>${ap}${s.t==='24:00'?' · midnight':''}</small></div><div class="items">${
+      s.items.map(d => {
+        const done = taken[d.key], late = !done && d.at <= now;
+        const sub = done ? 'Done at ' + fmtT(new Date(done)) : (late ? 'Missed / due · ' + fmtT(d.at) : fmtT(d.at) + ' · ' + esc(d.med.brand));
+        return `<button class="dose ${done?'done':''} ${late?'late':''}" style="--c:${col(d.med)}" data-k="${esc(d.key)}">
+          <span class="tx"><span class="nm">${esc(d.med.name)}</span><br><span class="sub">${sub}</span></span>
+          <span class="chk">${done?'✓':''}</span></button>`;
+      }).join('')}</div></div>`;
+  }).join('') + `<div class="note">Tap a drop to mark it done. Wait about ${S.gap||5} minutes between different drops. Shake Prednisolone before use.</div>`;
+}
+
+function renderPlan(){
+  const st = parseDay(S.start), today = dkey(new Date()), now = Date.now();
+  $('#v-plan').innerHTML = S.meds.map(m => {
+    const total = totalDays(m);
+    const dayN = Math.min(total, Math.max(0, Math.round((parseDay(today) - st)/86400e3) + 1));
+    const mine = ALL.filter(d => d.med.id === m.id), past = mine.filter(d => d.at <= now);
+    const got = past.filter(d => taken[d.key]).length;
+    let off = 0;
+    const ph = m.phases.map(p => {
+      const a = addDays(st, off), b = addDays(st, off + p.days - 1); off += Number(p.days);
+      const cur = today >= dkey(a) && today <= dkey(b);
+      return `<div class="phase ${cur?'cur':''}"><span>${esc(p.label)}</span><span>${fmtD(a)} – ${fmtD(b)}</span>
+        <span class="t">${p.times.map(tLabel).join(' · ')}</span></div>`;
+    }).join('');
+    return `<div class="card" style="--c:${col(m)}">
+      <h2><i style="background:${col(m)}"></i>${esc(m.name)}</h2>
+      <div class="s si">${esc(m.si)}</div>
+      <div class="bar"><b style="width:${(dayN/total*100).toFixed(1)}%"></b></div>
+      <div class="s">Day ${dayN} of ${total}${past.length ? ` · ${got} of ${past.length} doses so far marked done` : ''}</div>
+      ${ph}</div>`;
+  }).join('') + (S.visit ? `<div class="card"><h2>Clinic visit</h2><div class="s">${fmtD(new Date(S.visit))}, ${fmtT(new Date(S.visit))}</div></div>` : '');
+}
+
+function renderSettings(){
+  $('#v-set').innerHTML = `
+  <div class="card">
+    <h2>Course</h2>
+    <label class="f" for="start">First day of drops</label>
+    <input type="date" id="start" value="${S.start}">
+    <label class="f" for="gap">Gap between different drops at the same time</label>
+    <select id="gap">${[0,3,5,10].map(g=>`<option value="${g}" ${g==S.gap?'selected':''}>${g ? g+' minutes' : 'No gap'}</option>`).join('')}</select>
+    <label class="f" for="visit">Next clinic visit</label>
+    <input type="datetime-local" id="visit" value="${S.visit||''}">
+  </div>
+  <div class="card">
+    <h2>Reminders</h2>
+    <div class="s" id="nstat"></div>
+    <label class="f" for="repeat">If not marked done, remind again every</label>
+    <select id="repeat">${[5,10,15,0].map(g=>`<option value="${g}" ${g==S.repeat?'selected':''}>${g ? g+' minutes (max 3 times)' : "Don't repeat"}</option>`).join('')}</select>
+    <label class="f"><input type="checkbox" id="sound" ${S.sound?'checked':''}> Play a sound when the app is open</label>
+    <div class="row">
+      <button class="btn pri" id="nOn">Turn on notifications</button>
+      <button class="btn sec" id="nTest">Test reminder</button>
+      <button class="btn sec" id="ics">Download calendar (.ics)</button>
+    </div>
+    <div class="note">Web notifications only fire while the app is open or recently used. For alarms that ring even when the phone is locked, also import the calendar file (or use the Android app build).</div>
+  </div>
+  ${S.meds.map((m,mi) => `<div class="card" style="--c:${col(m)}">
+    <h2><i style="background:${col(m)}"></i>${esc(m.name)}</h2>
+    ${m.phases.map((p,pi) => `<label class="f">${esc(p.label)} · days</label>
+      <input type="number" min="1" max="60" value="${p.days}" data-days="${mi}.${pi}">
+      <div class="times">${p.times.map((t,ti)=>`<span><input type="time" value="${t==='24:00'?'00:00':t}" data-t="${mi}.${pi}.${ti}"><button class="x" data-del="${mi}.${pi}.${ti}" aria-label="Remove time">×</button></span>`).join('')}
+      <button class="btn sec" data-add="${mi}.${pi}">+ time</button></div>`).join('')}
+  </div>`).join('')}
+  <div class="row"><button class="btn danger" id="reset">Reset to prescription</button><button class="btn danger" id="clear">Clear done ticks</button></div>
+  <div class="note">12:00 AM is treated as midnight at the end of that day. Times come from the doctor's sheet; check them with your doctor or pharmacist if unsure.</div>`;
+  updNstat();
+  const sv = () => { save(); afterChange(true); };
+  $('#start').onchange = e => { if (e.target.value){ S.start = e.target.value; viewDay = dkey(new Date()); sv(); } };
+  $('#gap').onchange = e => { S.gap = +e.target.value; sv(); };
+  $('#repeat').onchange = e => { S.repeat = +e.target.value; sv(); };
+  $('#visit').onchange = e => { S.visit = e.target.value; sv(); };
+  $('#sound').onchange = e => { S.sound = e.target.checked; save(); };
+  $('#nOn').onclick = askPerm;
+  $('#nTest').onclick = () => fire([{med:{name:'Test'}, at:new Date()}], true);
+  $('#ics').onclick = downloadICS;
+  $('#reset').onclick = () => { const v = S.visit; S = clone(DEFAULT); S.visit = v; sv(); renderSettings(); toast('Schedule reset'); };
+  $('#clear').onclick = () => { taken = {}; rem = {}; sv(); toast('Ticks cleared'); };
+  $('#v-set').querySelectorAll('[data-days]').forEach(el => el.onchange = () => {
+    const [mi,pi] = el.dataset.days.split('.').map(Number); const v = Math.max(1, Math.min(60, +el.value||1));
+    S.meds[mi].phases[pi].days = v; sv();
+  });
+  $('#v-set').querySelectorAll('[data-t]').forEach(el => el.onchange = () => {
+    const [mi,pi,ti] = el.dataset.t.split('.').map(Number); if (!el.value) return;
+    const p = S.meds[mi].phases[pi]; p.times[ti] = el.value === '00:00' ? '24:00' : el.value;
+    p.times.sort((a,b)=>mins(a)-mins(b)); sv(); renderSettings();
+  });
+  $('#v-set').querySelectorAll('[data-del]').forEach(el => el.onclick = () => {
+    const [mi,pi,ti] = el.dataset.del.split('.').map(Number); const p = S.meds[mi].phases[pi];
+    if (p.times.length > 1){ p.times.splice(ti,1); sv(); renderSettings(); }
+  });
+  $('#v-set').querySelectorAll('[data-add]').forEach(el => el.onclick = () => {
+    const [mi,pi] = el.dataset.add.split('.').map(Number); const p = S.meds[mi].phases[pi];
+    p.times.push('12:00'); p.times.sort((a,b)=>mins(a)-mins(b)); sv(); renderSettings();
+  });
+}
+
+function renderAll(){ renderHero(); renderToday(); renderPlan(); }
+function afterChange(rebuild){ if (rebuild) build(); save(); renderAll(); nativeSchedule(); }
+
+/* ---------- Tabs & day nav ---------- */
+document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + b.dataset.v));
+  if (b.dataset.v === 'set') renderSettings();
+  scrollTo(0,0);
+});
+$('#prev').onclick = () => { viewDay = dkey(addDays(parseDay(viewDay), -1)); renderToday(); };
+$('#next').onclick = () => { viewDay = dkey(addDays(parseDay(viewDay), 1)); renderToday(); };
+$('#today').onclick = () => { viewDay = dkey(new Date()); renderToday(); };
+$('#v-today').addEventListener('click', e => {
+  const b = e.target.closest('.dose'); if (!b) return;
+  const k = b.dataset.k; if (taken[k]) delete taken[k]; else taken[k] = Date.now();
+  afterChange();
+});
+
+/* ---------- Reminders ---------- */
+function toast(t){ const el = $('#toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toast.h); toast.h = setTimeout(()=>el.style.display='none', 2500); }
+function updNstat(){
+  const el = $('#nstat'); if (!el) return;
+  const LN = nativeLN();
+  el.textContent = LN ? 'Android app: alarms are scheduled on the phone.' :
+    !('Notification' in window) ? 'This browser does not support notifications. Use the calendar file.' :
+    'Notifications: ' + ({granted:'on', denied:'blocked in browser settings', default:'not turned on yet'}[Notification.permission]);
+}
+async function askPerm(){
+  unlockAudio();
+  if (nativeLN()){ await nativeSchedule(); toast('Alarms scheduled'); return; }
+  if (!('Notification' in window)){ toast('Notifications not supported here'); return; }
+  try { await Notification.requestPermission(); } catch(e){}
+  updNstat();
+}
+let actx = null;
+function unlockAudio(){ try { actx ||= new (window.AudioContext||window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch(e){} }
+document.addEventListener('pointerdown', unlockAudio, {once:true});
+function beep(){
+  if (!S.sound || !actx) return;
+  try { [0,0.35,0.7].forEach(t => { const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = 880; o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(0.0001, actx.currentTime+t); g.gain.exponentialRampToValueAtTime(0.4, actx.currentTime+t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime+t+0.3); o.start(actx.currentTime+t); o.stop(actx.currentTime+t+0.32); }); } catch(e){}
+}
+async function fire(list, test){
+  const names = list.map(d => d.med.name).join(', ');
+  const title = test ? 'Test reminder' : 'Time for eye drops';
+  const body = test ? 'Reminders are working.' : names + ' · ' + fmtT(list[0].at);
+  beep(); try { navigator.vibrate && navigator.vibrate([300,150,300]); } catch(e){}
+  showAlarm(list, test);
+  if (nativeLN()) return;
+  if ('Notification' in window && Notification.permission === 'granted'){
+    const opt = { body, icon:'icon-192.png', badge:'icon-192.png', tag:'eyedrops', renotify:true, requireInteraction:true, vibrate:[300,150,300] };
+    try { const reg = await navigator.serviceWorker?.getRegistration(); if (reg) { await reg.showNotification(title, opt); return; } } catch(e){}
+    try { new Notification(title, opt); } catch(e){}
+  }
+}
+function showAlarm(list, test){
+  const el = $('#alarm');
+  el.innerHTML = `<h3>${test ? 'Test reminder' : 'Time for eye drops'}</h3>
+    <div class="who" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${list.map(d=>`<span class="pill">${d.med.color?`<i style="background:${col(d.med)}"></i>`:''}${esc(d.med.name)}</span>`).join('')}</div>
+    <div class="row" style="margin-top:0">${test ? '' : '<button class="btn pri" id="aDone">Done</button><button class="btn sec" id="aSnooze">Snooze 5 min</button>'}<button class="btn sec" id="aClose">Close</button></div>`;
+  el.classList.add('on');
+  $('#aClose').onclick = () => el.classList.remove('on');
+  if (!test){
+    $('#aDone').onclick = () => { list.forEach(d => { if (d.key) taken[d.key] = Date.now(); }); el.classList.remove('on'); afterChange(); };
+    $('#aSnooze').onclick = () => { list.forEach(d => { if (d.key) rem[d.key] = {n:(rem[d.key]?.n||1), next:Date.now()+5*60000}; }); save(); el.classList.remove('on'); };
+  }
+}
+function tick(){
+  const now = Date.now(), due = [];
+  ALL.forEach(d => {
+    if (taken[d.key] || d.at > now || now - d.at > 3*3600e3) return;
+    const r = rem[d.key] || {n:0, next:d.at.getTime()};
+    const max = S.repeat ? 3 : 1;
+    if (r.n < max && now >= r.next){ due.push(d); rem[d.key] = {n:r.n+1, next: now + (S.repeat||10)*60000}; }
+  });
+  if (due.length){ save(); fire(due); }
+  // clinic visit: remind once, 2 hours before
+  if (S.visit){ const v = new Date(S.visit).getTime(), k = 'visit|'+S.visit;
+    if (!rem[k] && now >= v - 2*3600e3 && now < v){ rem[k] = {n:1}; save(); fire([{med:{name:'Clinic visit at '+fmtT(new Date(v))}, at:new Date(v)}], false); } }
+  renderHero();
+  if (viewDay === dkey(new Date())) renderToday();
+}
+
+/* ---------- Native Android/iOS build (Capacitor Local Notifications) ---------- */
+function nativeLN(){ try { return window.Capacitor?.isNativePlatform?.() && window.Capacitor.Plugins?.LocalNotifications; } catch(e){ return null; } }
+async function nativeSchedule(){
+  const LN = nativeLN(); if (!LN) return;
+  try {
+    const p = await LN.checkPermissions();
+    if (p.display !== 'granted') await LN.requestPermissions();
+    const pend = await LN.getPending();
+    if (pend.notifications?.length) await LN.cancel({ notifications: pend.notifications.map(n => ({id:n.id})) });
+    const now = Date.now(), slots = [];
+    ALL.filter(d => !taken[d.key] && d.at > now).forEach(d => {
+      let s = slots.find(x => x.t === d.at.getTime()); if (!s) slots.push(s = {t:d.at.getTime(), names:[]}); s.names.push(d.med.name);
+    });
+    if (S.visit){ const v = new Date(S.visit).getTime() - 2*3600e3; if (v > now) slots.push({t:v, names:['Clinic visit in 2 hours'], visit:true}); }
+    slots.sort((a,b)=>a.t-b.t);
+    const cap = window.Capacitor.getPlatform() === 'ios' ? 60 : 400;
+    await LN.schedule({ notifications: slots.slice(0, cap).map((s,i) => ({
+      id: i + 1, title: s.visit ? 'Clinic visit' : 'Time for eye drops',
+      body: s.names.join(', ') + (s.visit ? '' : ' · ' + fmtT(new Date(s.t))),
+      schedule: { at: new Date(s.t), allowWhileIdle: true }
+    })) });
+  } catch(e){ console.warn('native schedule failed', e); }
+}
+
+/* ---------- Calendar export ---------- */
+function downloadICS(){
+  const f = d => d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(d.getHours())+pad(d.getMinutes())+'00';
+  const stamp = new Date(), lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//EyeDrops//Reminder//EN','CALSCALE:GREGORIAN','X-WR-CALNAME:Eye drops'];
+  const slots = {};
+  ALL.forEach(d => (slots[d.at.getTime()] ||= []).push(d.med.name));
+  Object.entries(slots).forEach(([t, names], i) => {
+    const a = new Date(+t), b = new Date(+t + 5*60000);
+    lines.push('BEGIN:VEVENT', `UID:eyedrops-${t}-${i}@local`, 'DTSTAMP:'+f(stamp), 'DTSTART:'+f(a), 'DTEND:'+f(b),
+      'SUMMARY:Eye drops: '+names.join(', '), 'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Eye drops: '+names.join(', '),'TRIGGER:PT0M','END:VALARM','END:VEVENT');
+  });
+  if (S.visit){ const v = new Date(S.visit);
+    lines.push('BEGIN:VEVENT','UID:eyedrops-visit@local','DTSTAMP:'+f(stamp),'DTSTART:'+f(v),'DTEND:'+f(new Date(+v+3600e3)),'SUMMARY:Eye clinic visit',
+      'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Eye clinic visit','TRIGGER:-PT2H','END:VALARM','END:VEVENT'); }
+  lines.push('END:VCALENDAR');
+  const blob = new Blob([lines.join('\r\n')], {type:'text/calendar'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'eye-drops.ics';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  toast('Calendar file downloaded');
+}
+
+/* ---------- Start ---------- */
+if ('serviceWorker' in navigator && location.protocol !== 'file:'){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+build(); renderAll(); nativeSchedule();
+setInterval(tick, 20000); tick();
+document.addEventListener('visibilitychange', () => { if (!document.hidden){ tick(); nativeSchedule(); } });
+}
+</script>
+</body>
+</html>
