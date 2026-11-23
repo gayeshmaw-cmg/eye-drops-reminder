@@ -4,10 +4,10 @@ The schedule comes from Dr. Manel Pasquel's sheet. The course starts on 22 Nov 2
 
 | Drop | Schedule | Times |
 |---|---|---|
-| Megamox (Optimox) | Every 6 h, 2 weeks | 6 AM · 12 PM · 6 PM · 12 AM |
+| Megamox (Optimox) | Every 6 h, 2 weeks | 6 AM · 12 PM · 6 PM · 10 PM |
 | Nevan | Every 8 h, 4 weeks | 6 AM · 2 PM · 10 PM |
 | Prednisolone (Optipred) wk 1 | Every 4 h | 6 · 10 AM · 2 · 6 · 10 PM |
-| wk 2 | Every 6 h | 6 AM · 12 PM · 6 PM · 12 AM |
+| wk 2 | Every 6 h | 6 AM · 12 PM · 6 PM · 10 PM |
 | wk 3 | Every 8 h | 6 AM · 2 PM · 10 PM |
 | wk 4 | Every 12 h | 6 AM · 6 PM |
 | wk 5 | Once a day | 6 AM |
