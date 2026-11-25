@@ -48,6 +48,26 @@ In `android/app/src/main/AndroidManifest.xml`, add these lines for exact alarms 
 
 On the phone, turn off battery optimisation for the app (Settings → Apps → Eye Drops → Battery → Unrestricted).
 
+### Custom bell notification tone (Android)
+
+A bell/chime tone is generated at `sounds/bell.wav` (regenerate with `node scripts/make-bell.js`).
+After `npx cap add android`, copy it into the project so Android can find it as a raw resource:
+
+```bash
+mkdir -p android/app/src/main/res/raw
+cp sounds/bell.wav android/app/src/main/res/raw/bell.wav
+npx cap sync android
+```
+
+The app creates a dedicated notification channel (`eyedrops_bell`) the first time it schedules reminders, using
+this file as the channel's sound. Rebuild and reinstall the APK after copying the sound so the channel is created
+with it — Android locks a channel's sound once created, so if you change the file later, uninstall the app first
+(or bump the channel id in `index.html`) and reinstall to pick up the change.
+
+> Browser/PWA limitation: Chrome on Android ignores the `sound` option for web notifications, so a custom tone
+> only works in the APK build (Option B). The in-app alarm popup and "Test reminder" (while the app is open) always
+> play the bell chime through the Web Audio API, regardless of build.
+
 ## Notes
 - Tap a drop to mark it done. The app keeps reminding you every 10 minutes, up to 3 times, until you mark it done. You can change the interval in Settings.
 - A dose set to "12:00 AM" counts as midnight at the end of that day.

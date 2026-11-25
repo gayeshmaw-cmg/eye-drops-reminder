@@ -41,6 +41,7 @@ header{background:var(--head);color:var(--headink);padding:calc(14px + env(safe-
 .hero .who{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .pill{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#13243a;border-radius:999px;padding:4px 10px 4px 6px;font-size:14px;font-weight:600}
 .pill i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.numb{display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:50%;color:#fff;font-weight:800;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .hero .cd{font-size:15px;opacity:.9}
 .btn{border:0;border-radius:12px;min-height:44px;padding:0 16px;font-weight:600;cursor:pointer}
 .btn.pri{background:#5fb3f0;color:#0b2540}
@@ -130,13 +131,13 @@ const DEFAULT = {
   repeat: 10,        // re-remind every N minutes if not marked done (max 3 reminders)
   visit: '2026-12-01T15:30',
   meds: [
-    { id:'megamox', name:'Megamox', brand:'Optimox', color:'megamox',
+    { id:'megamox', name:'Megamox', brand:'Optimox', color:'megamox', num:1,
       si:'පැය 6 කට වරක් බැගින් සති 2 ක්',
       phases:[ {days:14, label:'Every 6 hours', times:['06:00','12:00','18:00','22:00']} ] },
-    { id:'nevan', name:'Nevan', brand:'Nevan', color:'nevan',
+    { id:'nevan', name:'Nevan', brand:'Nevan', color:'nevan', num:2,
       si:'පැය 8 කට වරක් බැගින් සති 4 ක්',
       phases:[ {days:28, label:'Every 8 hours', times:['06:00','14:00','22:00']} ] },
-    { id:'pred', name:'Prednisolone Acetate', brand:'Optipred · shake well', color:'pred',
+    { id:'pred', name:'Prednisolone Acetate', brand:'Optipred · shake well', color:'pred', num:3,
       si:'පැය 4 → 6 → 8 → 12 → 22 කට වරක් (සතියක් බැගින්)',
       phases:[
         {days:7, label:'Every 4 hours',  times:['06:00','10:00','14:00','18:00','22:00']},
@@ -171,6 +172,7 @@ const fmtD = d => d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',mo
 const tLabel = t => t==='24:00' ? '12:00 AM' : fmtT(new Date(2000,0,1,0,mins(t)));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const col = m => `var(--c-${m.color})`;
+const numb = (m, size) => m.num ? `<span class="numb" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.52)}px;background:${col(m)}">${m.num}</span>` : '';
 const totalDays = m => m.phases.reduce((a,p)=>a+Number(p.days),0);
 
 /* ---------- Build every dose of the course ---------- */
@@ -214,7 +216,7 @@ function renderHero(){
   if (late.length){
     const first = late[0].at;
     h = `<div class="k">Due now · since ${fmtT(first)}</div>
-      <div class="who">${late.map(d=>`<span class="pill"><i style="background:${col(d.med)}"></i>${esc(d.med.name)}</span>`).join('')}</div>
+      <div class="who">${late.map(d=>`<span class="pill">${numb(d.med,20)}${esc(d.med.name)}</span>`).join('')}</div>
       <button class="btn pri" id="doneAll">Mark ${late.length>1?'all '+late.length:''} done</button>`;
   } else if (next){
     const same = ALL.filter(d => !taken[d.key] && d.base.getTime() === next.base.getTime());
@@ -222,7 +224,7 @@ function renderHero(){
     const dayTxt = dkey(next.at) === dkey(new Date()) ? '' : ' · ' + fmtD(next.at);
     h = `<div class="k">Next drops${dayTxt}</div>
       <div class="big">${fmtT(next.at)}</div>
-      <div class="who">${same.map(d=>`<span class="pill"><i style="background:${col(d.med)}"></i>${esc(d.med.name)}</span>`).join('')}</div>
+      <div class="who">${same.map(d=>`<span class="pill">${numb(d.med,20)}${esc(d.med.name)}</span>`).join('')}</div>
       <div class="cd">in ${hh ? hh+' h ' : ''}${mm} min</div>`;
   } else {
     h = `<div class="k">Course</div><div class="big">All done</div><div class="cd">No more drops scheduled.</div>`;
@@ -254,6 +256,7 @@ function renderToday(){
         const done = taken[d.key], late = !done && d.at <= now;
         const sub = done ? 'Done at ' + fmtT(new Date(done)) : (late ? 'Missed / due · ' + fmtT(d.at) : fmtT(d.at) + ' · ' + esc(d.med.brand));
         return `<button class="dose ${done?'done':''} ${late?'late':''}" style="--c:${col(d.med)}" data-k="${esc(d.key)}">
+          ${numb(d.med,40)}
           <span class="tx"><span class="nm">${esc(d.med.name)}</span><br><span class="sub">${sub}</span></span>
           <span class="chk">${done?'✓':''}</span></button>`;
       }).join('')}</div></div>`;
@@ -275,7 +278,7 @@ function renderPlan(){
         <span class="t">${p.times.map(tLabel).join(' · ')}</span></div>`;
     }).join('');
     return `<div class="card" style="--c:${col(m)}">
-      <h2><i style="background:${col(m)}"></i>${esc(m.name)}</h2>
+      <h2>${numb(m,32)}${esc(m.name)}</h2>
       <div class="s si">${esc(m.si)}</div>
       <div class="bar"><b style="width:${(dayN/total*100).toFixed(1)}%"></b></div>
       <div class="s">Day ${dayN} of ${total}${past.length ? ` · ${got} of ${past.length} doses so far marked done` : ''}</div>
@@ -308,7 +311,7 @@ function renderSettings(){
     <div class="note">Web notifications only fire while the app is open or recently used. For alarms that ring even when the phone is locked, also import the calendar file (or use the Android app build).</div>
   </div>
   ${S.meds.map((m,mi) => `<div class="card" style="--c:${col(m)}">
-    <h2><i style="background:${col(m)}"></i>${esc(m.name)}</h2>
+    <h2>${numb(m,32)}${esc(m.name)}</h2>
     ${m.phases.map((p,pi) => `<label class="f">${esc(p.label)} · days</label>
       <input type="number" min="1" max="60" value="${p.days}" data-days="${mi}.${pi}">
       <div class="times">${p.times.map((t,ti)=>`<span><input type="time" value="${t==='24:00'?'00:00':t}" data-t="${mi}.${pi}.${ti}"><button class="x" data-del="${mi}.${pi}.${ti}" aria-label="Remove time">×</button></span>`).join('')}
@@ -387,10 +390,23 @@ function unlockAudio(){ try { actx ||= new (window.AudioContext||window.webkitAu
 document.addEventListener('pointerdown', unlockAudio, {once:true});
 function beep(){
   if (!S.sound || !actx) return;
-  try { [0,0.35,0.7].forEach(t => { const o = actx.createOscillator(), g = actx.createGain();
-    o.frequency.value = 880; o.connect(g); g.connect(actx.destination);
-    g.gain.setValueAtTime(0.0001, actx.currentTime+t); g.gain.exponentialRampToValueAtTime(0.4, actx.currentTime+t+0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime+t+0.3); o.start(actx.currentTime+t); o.stop(actx.currentTime+t+0.32); }); } catch(e){}
+  // Bell-like chime: a few inharmonic partials over a fundamental, each decaying at its own rate.
+  // Rings 4 times (within the 3-5 range) so it reads as an alarm, not a single blip.
+  const PARTIALS = [[1,1,3.2],[2,.55,4.2],[2.76,.35,5],[4.07,.22,6]];
+  const RINGS = 4, GAP = 0.9; // seconds between the start of each ring
+  try {
+    const f0 = 740;
+    for (let r = 0; r < RINGS; r++){
+      const start = actx.currentTime + r*GAP;
+      PARTIALS.forEach(([ratio, amp, decay]) => {
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.type = 'sine'; o.frequency.value = f0 * ratio; o.connect(g); g.connect(actx.destination);
+        g.gain.setValueAtTime(0.0001, start); g.gain.exponentialRampToValueAtTime(amp*0.35, start+0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, start+1.4);
+        o.start(start); o.stop(start+1.5);
+      });
+    }
+  } catch(e){}
 }
 async function fire(list, test){
   const names = list.map(d => d.med.name).join(', ');
@@ -408,7 +424,7 @@ async function fire(list, test){
 function showAlarm(list, test){
   const el = $('#alarm');
   el.innerHTML = `<h3>${test ? 'Test reminder' : 'Time for eye drops'}</h3>
-    <div class="who" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${list.map(d=>`<span class="pill">${d.med.color?`<i style="background:${col(d.med)}"></i>`:''}${esc(d.med.name)}</span>`).join('')}</div>
+    <div class="who" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${list.map(d=>`<span class="pill">${numb(d.med,20)}${esc(d.med.name)}</span>`).join('')}</div>
     <div class="row" style="margin-top:0">${test ? '' : '<button class="btn pri" id="aDone">Done</button><button class="btn sec" id="aSnooze">Snooze 5 min</button>'}<button class="btn sec" id="aClose">Close</button></div>`;
   el.classList.add('on');
   $('#aClose').onclick = () => el.classList.remove('on');
@@ -435,11 +451,25 @@ function tick(){
 
 /* ---------- Native Android/iOS build (Capacitor Local Notifications) ---------- */
 function nativeLN(){ try { return window.Capacitor?.isNativePlatform?.() && window.Capacitor.Plugins?.LocalNotifications; } catch(e){ return null; } }
+const BELL_CHANNEL = 'eyedrops_bell';
+let channelReady = false;
+async function ensureBellChannel(LN){
+  if (channelReady || window.Capacitor.getPlatform() !== 'android') return;
+  try {
+    await LN.createChannel({
+      id: BELL_CHANNEL, name: 'Eye drop reminders (bell)',
+      description: 'Bell tone for eye drop dose reminders',
+      sound: 'bell.wav', importance: 5, visibility: 1, vibration: true
+    });
+  } catch(e){}
+  channelReady = true;
+}
 async function nativeSchedule(){
   const LN = nativeLN(); if (!LN) return;
   try {
     const p = await LN.checkPermissions();
     if (p.display !== 'granted') await LN.requestPermissions();
+    await ensureBellChannel(LN);
     const pend = await LN.getPending();
     if (pend.notifications?.length) await LN.cancel({ notifications: pend.notifications.map(n => ({id:n.id})) });
     const now = Date.now(), slots = [];
@@ -452,7 +482,8 @@ async function nativeSchedule(){
     await LN.schedule({ notifications: slots.slice(0, cap).map((s,i) => ({
       id: i + 1, title: s.visit ? 'Clinic visit' : 'Time for eye drops',
       body: s.names.join(', ') + (s.visit ? '' : ' · ' + fmtT(new Date(s.t))),
-      schedule: { at: new Date(s.t), allowWhileIdle: true }
+      schedule: { at: new Date(s.t), allowWhileIdle: true },
+      channelId: BELL_CHANNEL, sound: 'bell.wav'
     })) });
   } catch(e){ console.warn('native schedule failed', e); }
 }
